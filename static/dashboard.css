@@ -2,7 +2,8 @@
     font-family: Arial, sans-serif;
 }
 
-#parent_histogram, #parent_barchart, #parent_timeseries, #parent_timeseries_rolling, #parent_setup {
+#parent_histogram, #parent_barchart, #parent_timeseries, #parent_clustering,
+#parent_timeseries_rolling, #parent_setup, #parent_clustering_histogram {
     padding: 0 50px 20px 50px;
 }
 
@@ -34,10 +35,10 @@ button {
 }
 
 div.half {
-    width: 40%;
+    width: 43%;
     display: inline-block;
     vertical-align: top;
-    padding-right: 10%
+    padding-right: 7%
 }
 
 div.dash-graph {
@@ -46,6 +47,7 @@ div.dash-graph {
     margin-top: 25px;
     padding: 15px;
     overflow: auto;
+    background-color: white;
 }
 
 #clustering_dimensions {
@@ -54,11 +56,11 @@ div.dash-graph {
     vertical-align: sub
 }
 
-#clustering_wrapper {
+#clustering_wrapper, #clustering_histogram_wrapper {
     display: none;
 }
 
-div.wrapper {
+div.wrapper, #parent_clustering_histogram > div {
     background: #e5ecf6;
     border-radius: 5px;
     padding: 25px;
@@ -105,37 +107,34 @@ hr {
 
 #parent_clustering label {
     font-size: 17px;
-    margin: 15px 40px 15px 0;
+    margin: 0 33px 25px -20px;
     display: inline-block;
 }
 
-#parent_clustering label input {
+#parent_clustering label input, #parent_clustering_histogram label input, #timeseries_rolling_enabled input  {
     margin-right: 10px;
+    margin-left: 20px;
+}
+
+#clustering_histogram_highlight_categorical > label {
+    margin: 5px 25px 5px 0;
 }
 
 #parent_clustering .half span {
     font-size: 17px;
 }
 
-#parent_clustering .rc-slider-rail {
-    background-color: white;
-}
-
-#parent_clustering .rc-slider-dot {
-    border-color: white;
-}
-
 #parent_clustering .cmSQpo, .gJuplL {
     background: #0075ff !important;
 }
 
-#clustering_features_timeseries {
-    width: 670px;
+#clustering_highlight_categorical {
+    margin-bottom: 25px;
 }
 
 #setup_wrapper > div {
-    padding: 15px;
-    margin: 10px 0;
+    padding: 5px 25px 15px 25px;
+    margin: 15px 0;
     border-radius: 15px;
     border: 1px solid grey;
 }
@@ -153,7 +152,7 @@ hr {
     font-weight: bold;
 }
 
-#setup_wrapper > div > p {
+#setup_wrapper > div > p, .subtext {
 
     font-size: 14px;
     margin-top: -5px;
@@ -185,7 +184,18 @@ hr {
     color: #ea0000;
     bottom: 1px;
 }
-
+textarea{
+    display: none;
+    width: calc(100% - 30px);
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 16px;
+    background: #f9f9f9;
+    color: black;
+    min-height: 200px;
+    letter-spacing: 0.5px;
+    margin-top: 20px;
+}
 #setup_wrapper > div.completed > span:after {
     margin-left: 10px;
 }
@@ -205,15 +215,42 @@ hr {
     margin-bottom: 20px;
 }
 
-#step3_PCA, #step3_rolling {
+#step3_PCA, #step3_rolling, #slider_clustering_histogram_rolling_window, #slider_timeseries_rolling_window,
+#slider_clustering_histogram_preprocess_rolling_window, #slider_clustering_histogram_preprocess_bins {
     padding: 25px 25px 45px 25px !important;
 }
 
-#step_3_enable_pca, #step_3_enable_rolling{
+#step_3_enable_pca, #step_3_enable_rolling, #clustering_histogram_enable_rolling, #timeseries_rolling_enabled,
+#clustering_histogram_preprocess_enable_rolling, #timeseries_rolling_enabled {
     display: inline-block;
 }
 
-#step_3_enable_pca input, #step_3_enable_rolling input{
+#step_3_enable_pca input, #step_3_enable_rolling input, #clustering_histogram_enable_rolling input,
+#timeseries_rolling_enabled input, #clustering_histogram_preprocess_enable_rolling input, #timeseries_rolling_enabled input {
+    display: inline-block;
+}
+#step_3_enable_weeks, #clustering_histogram_preprocess_enable_weeks{
+    margin: 15px 0;
+}
+
+#dropdown_clustering_histogram_preprocess_feature {
+    margin-bottom: 20px;
+}
+
+#step_3_enable_pca input, #step_3_enable_rolling input, #step_3_enable_weeks input,
+#clustering_histogram_preprocess_enable_weeks input {
     display: inline-block;
     margin: 0 10px 0 15px;
+}
+
+#dropdown_clustering_histogram_feature, #dropdown_timeseries_rolling_feature{
+    margin-bottom: 15px;
+}
+
+.rc-slider-rail {
+    background-color: #0075ff !important;
+}
+
+.rc-slider-dot {
+    border: 2px solid #0075ff;
 }
