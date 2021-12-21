@@ -30,8 +30,7 @@
 
 ## util.py
 
-This file contains utility functions. This file is not required to be executed to use the dashboard. However, steps 4
-and 5 can currently only be accessed from the command line.
+This file contains utility functions. This file is not required to be executed to use the dashboard.
 
 1. __Parse data__: Originally, the data was in 268 Parquet files that contained the data of multiple animals each. There
    was also the issue that some data was split amongst multiple files. Loading all 268 into memory and combining them
@@ -69,8 +68,9 @@ and 5 can currently only be accessed from the command line.
    time series were clustered into 3 to 6 clusters which results in 620 combination that were evaluated. This only takes
    around 1-2 minutes)
 6. __Displaying the best clusters__: This step is not needed to use the dashboard. Every time something is clustered,
-   the results are saved. Additionally, The fifth step resulted in a file that saved the evaluation score for every combination of
-   features. This step simply looks through the list to find the best clusters according to each evaluation score.
+   the results are saved. Additionally, The fifth step resulted in a file that saved the evaluation score for every
+   combination of features. This step simply looks through the list to find the best clusters according to each
+   evaluation score.
 
 ## dashboard.py
 
@@ -81,8 +81,8 @@ to use the dashboard. Step 3 needs to be done if time series data is needed whil
 
 - __Setup__: In this tab, the setup can be completed without the need of the command line. The original data can be
   parsed, numerical features can be calculated and time series data can be preprocessed. The colors and icons indicate
-  if the step can be completed or if it already was completed.
-  Additionally, the best clustering results can be displayed.
+  if the step can be completed or if it already was completed. Additionally, the best clustering results can be
+  displayed.
 
 - __Histogram/Heatmap__: Here, the numerical features calculated in step 2 of util.py can be visualized. The bin size of
   the histogram is adjustable in the dashboard. This can be used to see which features might be useful for clustering.
@@ -145,6 +145,8 @@ opened, after the script was started, to access the dashboard.
 # Possible Additions & Current Issues
 
 - Functionality:
+    - There are 2-3 data points that are in most aspects usually outliers. It might be interesting to find out if this
+      data is faulty (then remove it) or if there is some other cause.
     - Currently, K-Means is used for clustering. Other clustering algorithms could be added.
     - In the preprocessed data, numerical features of only the Motility Period are calculated. Numerical features of the
       Motility Pulse Width or Rumination Classification could also be valuable.
