@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import os
+import pyperclip
 import flask
 from os.path import exists
 from util import calculate_clusters, get_file_info, parse_data, calculate_features, prepare_timeseries, \
@@ -104,7 +105,7 @@ def start_dashboard():
 
     # Create setup tab layout
     layouts['layout_setup'] = html.Div(id='parent_setup', children=[
-        html.H1(children='Setup'),
+        html.H1(children='Setup & Preprocessing'),
         html.Div(id='setup_wrapper', children=[
             html.Div(id='step1_wrapper', className=step1_completed, children=[
                 html.H3("Step 1: Parsing original data"), html.Span(" - already completed!"),
@@ -163,6 +164,37 @@ def start_dashboard():
                     html.Span("Enables: ", className='enables_span'),
                     html.Span("Using time series data for clustering"),
                     html.Button("Go!", id="button_step3"),
+                ])]),
+            html.Div(id='step4_wrapper', className='completed' if len(preprocessed_files_histograms) else '', children=[
+                html.H3("Step 4: Preprocessing time series data into histograms"),
+                html.Span(" - already completed!"),
+                html.P("The time series data can also be turned into histograms that afterwards can be used to cluster "
+                       "to data.", className='setup_explanation'),
+                html.P(f"(Currently there are {len(preprocessed_files_histograms)} already preprocessed histograms.)",
+                       id="step4_num_files"),
+                html.Div(className='setup_requirements_wrapper', children=[
+                    html.Span("Requirements: ", className='req_span'), html.Span("Step 1\n"),
+                    html.Span(className=f"requirements {'met' if step1_completed else ''}", id="step4_requirement"),
+                    html.P("Feature to use:"),
+                    dcc.Dropdown(id='dropdown_clustering_histogram_preprocess_feature', value='mot_period',
+                                 options=features[features['category'] == 'time'][['label', 'value']].to_dict(
+                                     'records')),
+                    html.Span("Size of Rolling Mean Window:"),
+                    dcc.Checklist(id='clustering_histogram_preprocess_enable_rolling',
+                                  options=[{'label': 'enable', 'value': 'enabled'}]),
+                    dcc.RangeSlider(id="slider_clustering_histogram_preprocess_rolling_window", min=2,
+                                    max=1000, value=[30], marks={2: '2', 1000: '1000'},
+                                    tooltip={"placement": "bottom", "always_visible": True}),
+                    html.Span("Number of Bins:"),
+                    dcc.RangeSlider(id="slider_clustering_histogram_preprocess_bins", min=2, max=100, value=[50],
+                                    marks={2: '2', 100: '100'},
+                                    tooltip={"placement": "bottom", "always_visible": True}),
+                    html.Span('Split data into weeks?', style={'font-weight': 'bold'}),
+                    dcc.Checklist(id='clustering_histogram_preprocess_enable_weeks',
+                                  options=[{'label': 'Split into weeks!', 'value': 'yes'}]),
+                    html.Span("Enables: ", className='enables_span'),
+                    html.Span("Using histograms for clustering in the 'Clustering Histograms' tab"),
+                    html.Button("Go!", id="preprocess_histogram_button"),
                 ])]),
             html.Div(children=[
                 html.H3("Find best results"),
@@ -292,28 +324,6 @@ def start_dashboard():
                                            tooltip={"placement": "bottom", "always_visible": True}),
                            dcc.Loading(id="loading-icon-6", type="default",
                                        children=[html.Div(dcc.Graph(id='clustering_single_histogram'))]), ]),
-        html.Div(children=[html.H2(children='Calculating and preprocessing histograms for each animal'),
-                           html.P(
-                               f"(There are {len(preprocessed_histograms_data_options)} different versions of preprocessed histograms)",
-                               id='preprocessed_histograms', className='subtext'),
-                           html.P("Feature to use:"),
-                           dcc.Dropdown(id='dropdown_clustering_histogram_preprocess_feature', value='mot_period',
-                                        options=features[features['category'] == 'time'][['label', 'value']].to_dict(
-                                            'records')),
-                           html.Span("Size of Rolling Mean Window:"),
-                           dcc.Checklist(id='clustering_histogram_preprocess_enable_rolling',
-                                         options=[{'label': 'enable', 'value': 'enabled'}]),
-                           dcc.RangeSlider(id="slider_clustering_histogram_preprocess_rolling_window", min=2,
-                                           max=1000, value=[30], marks={2: '2', 1000: '1000'},
-                                           tooltip={"placement": "bottom", "always_visible": True}),
-                           html.Span("Number of Bins:"),
-                           dcc.RangeSlider(id="slider_clustering_histogram_preprocess_bins", min=2, max=100, value=[50],
-                                           marks={2: '2', 100: '100'},
-                                           tooltip={"placement": "bottom", "always_visible": True}),
-                           html.Span('Split data into weeks?', style={'font-weight': 'bold'}),
-                           dcc.Checklist(id='clustering_histogram_preprocess_enable_weeks',
-                                         options=[{'label': 'Split into weeks!', 'value': 'yes'}]),
-                           html.Button("Preprocess!", id='preprocess_histogram_button'), ]),
         html.Div(children=[html.H2(children='Clustering preprocessed histograms'),
                            html.Div(className="half", children=[
                                html.H3("Histograms of:"),
@@ -357,7 +367,7 @@ def start_dashboard():
     app.layout = html.Div([
         html.Link(href='/static/dashboard.css', rel='stylesheet'),
         dcc.Tabs(id="tabs", children=[
-            dcc.Tab(label='Setup', value='layout_setup'),
+            dcc.Tab(label='Setup & Preprocessing', value='layout_setup'),
             dcc.Tab(label='Feature Histogram', value='layout_histogram'),
             dcc.Tab(label='Feature Barchart', value='layout_barchart'),
             dcc.Tab(label='Timeseries Visualisation', value='layout_timeseries_rolling'),
@@ -465,6 +475,32 @@ def start_dashboard():
                                    window=rolling if enable_rolling == ["enabled"] else None)
             logs.append(html.Div("Step 3 complete! You can now use time series data while clustering."))
             return "completed", f"(Currently there are {(num_files + 1)} already preprocessed files.)"
+
+    # cluster data using numerical features and time series data,
+    # display in various dimensions and highlight categorical features
+    @app.callback(Output(component_id='step4_num_files', component_property='children'),
+                  [Input(component_id='dropdown_clustering_histogram_preprocess_feature', component_property='value'),
+                   Input(component_id='clustering_histogram_preprocess_enable_rolling', component_property='value'),
+                   Input(component_id='slider_clustering_histogram_preprocess_rolling_window',
+                         component_property='value'),
+                   Input(component_id='slider_clustering_histogram_preprocess_bins', component_property='value'),
+                   Input(component_id='clustering_histogram_preprocess_enable_weeks', component_property='value'),
+                   Input(component_id='preprocess_histogram_button', component_property='n_clicks')
+                   ])
+    def preprocess_histogram_callback(feature, enable_window, window, bins, split_into_weeks, button):
+        # check if the button was pressed or if the callback was triggered by any other input
+        window, bins = window[0], bins[0]
+        if dash.callback_context.triggered[0]['prop_id'].split('.')[0] != 'preprocess_histogram_button':
+            return dash.no_update
+
+        logs.append(html.Div(f'Preprocessing histograms! This might take a while...'))
+        if split_into_weeks:
+            preprocess_histograms_per_week(feature, enable_window, window, bins)
+        else:
+            preprocess_histograms(feature, enable_window, window, bins)
+
+        num_files = len([f for f in os.listdir('preprocessed_data/histograms')])
+        return f"(There are {(num_files + 1)} different versions of preprocessed histograms)"
 
     # create histogram / heatmap of  one / two numerical features
     @app.callback([Output(component_id='histogram', component_property='figure'),
@@ -675,46 +711,23 @@ def start_dashboard():
 
         x = df[feature].to_list()
         if feature == 'mot_period':
-            min_data = metadata.loc[[metadata['min'].idxmax()]]['min'].values[0]
+            # min_data = metadata.loc[[metadata['min'].idxmax()]]['min'].values[0]
             max_data = metadata.loc[[metadata['max'].idxmax()]]['max'].values[0]
+            min_data = 0
         elif feature == 'mot_pulse_width':
             min_data, max_data = 4, 17
         else:
             min_data, max_data = 0, 1
-        # max value animal id - '60ec0f2df9fd09de9dcd67e0'
-        fig = px.histogram(x, nbins=bins, range_x=[min_data, max_data],
+
+        fig = px.histogram(x, range_x=[min_data, max_data],
                            color_discrete_sequence=["#0075ff"], histnorm='probability density')
+        fig.update_traces(xbins=dict(start=min_data, end=max_data, size=((max_data-min_data)/bins)))
         fig.update_layout(title=f'Histogram of the {get_label(feature)}' +
                                 ('- Rolling Mean - ' if enable_window == ["enabled"] else ""),
                           xaxis_title=get_label(feature), yaxis_title='percentage', showlegend=False, title_x=0.5)
+
         logs.append(html.Div('Created Figure! Displaying ...'))
         return fig
-
-    # cluster data using numerical features and time series data,
-    # display in various dimensions and highlight categorical features
-    @app.callback(Output(component_id='preprocessed_histograms', component_property='children'),
-                  [Input(component_id='dropdown_clustering_histogram_preprocess_feature', component_property='value'),
-                   Input(component_id='clustering_histogram_preprocess_enable_rolling', component_property='value'),
-                   Input(component_id='slider_clustering_histogram_preprocess_rolling_window',
-                         component_property='value'),
-                   Input(component_id='slider_clustering_histogram_preprocess_bins', component_property='value'),
-                   Input(component_id='clustering_histogram_preprocess_enable_weeks', component_property='value'),
-                   Input(component_id='preprocess_histogram_button', component_property='n_clicks')
-                   ])
-    def preprocess_histogram_callback(feature, enable_window, window, bins, split_into_weeks, button):
-        # check if the button was pressed or if the callback was triggered by any other input
-        window, bins = window[0], bins[0]
-        if dash.callback_context.triggered[0]['prop_id'].split('.')[0] != 'preprocess_histogram_button':
-            return dash.no_update
-
-        logs.append(html.Div(f'Preprocessing histograms! This might take a while...'))
-        if split_into_weeks:
-            preprocess_histograms_per_week(feature, enable_window, window, bins)
-        else:
-            preprocess_histograms(feature, enable_window, window, bins)
-
-        num_files = len([f for f in os.listdir('preprocessed_data/histograms')])
-        return f"(There are {(num_files + 1)} different versions of preprocessed histograms)"
 
     # cluster histograms using the preprocessed files
     @app.callback([Output(component_id='clustering_histogram', component_property='figure'),
@@ -801,6 +814,27 @@ def start_dashboard():
             return dash.no_update, dash.no_update
         return [print_best_clusters(top_n_results[0], features=features).replace('[4m', '')
                     .replace('[1m', '').replace('[0m', '')], {'display': 'block'}
+
+    def copy_animal_id(clickData):
+        if clickData is None:
+            return
+        pyperclip.copy(clickData['points'][0]['customdata'][0])
+        logs.append(html.Div(f"Copied {clickData['points'][0]['customdata'][0]} to clipboard."))
+        return
+
+    @app.callback(
+        Output(component_id='cluster_button', component_property='children'),
+        Input(component_id='clustering', component_property='clickData'))
+    def copy_id_clustering(clickData):
+        copy_animal_id(clickData)
+        return dash.no_update
+
+    @app.callback(
+        Output(component_id='clustering_histogram_button', component_property='children'),
+        Input(component_id='clustering_histogram', component_property='clickData'))
+    def copy_id_clustering_histogram(clickData):
+        copy_animal_id(clickData)
+        return dash.no_update
 
     if __name__ == '__main__':
         app.run_server()

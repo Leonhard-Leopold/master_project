@@ -6,3 +6,4 @@ scikit-learn~=0.23.2
 dash~=2.0.0
 plotly~=5.4.0
 Flask~=2.0.2
+pyperclip~=1.8.2

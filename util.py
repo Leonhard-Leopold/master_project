@@ -206,7 +206,6 @@ def prepare_timeseries_per_week(feature, pca_dims=10, window=None, pca_fit_after
             trimmed = timeseries[(timeseries['ts'] > start_of_week) & (timeseries['ts'] < end_of_week)]
             if len(trimmed.index) == 0 or end_of_week > timeseries.iloc[-1]['ts']:
                 break
-            start_of_week = end_of_week
 
             feature_timeseries = trimmed[feature]
 
@@ -222,7 +221,8 @@ def prepare_timeseries_per_week(feature, pca_dims=10, window=None, pca_fit_after
             ts_list = feature_timeseries.values.reshape(-1, 1)
             ts_list = min_max_scaler.fit_transform(ts_list)[:, 0]
             # ts_list = feature_timeseries.to_list()
-            columns.append(animal_id + ' - Week ' + str(week_counter))
+            columns.append(animal_id + ' - Week ' + str(week_counter) + " ("+start_of_week.strftime('%d.%m.%Y')+" - "+end_of_week.strftime('%d.%m.%Y')+")")
+            start_of_week = end_of_week
             if pca_dims is not None:
                 if i < pca_fit_after:
                     result_list.append(ts_list)
@@ -432,7 +432,6 @@ def preprocess_histograms_per_week(feature, window_enable, window, bins):
             trimmed = timeseries[(timeseries['ts'] > start_of_week) & (timeseries['ts'] < end_of_week)]
             if len(trimmed.index) == 0 or end_of_week > timeseries.iloc[-1]['ts']:
                 break
-            start_of_week = end_of_week
 
             feature_timeseries = trimmed[feature]
 
@@ -449,7 +448,9 @@ def preprocess_histograms_per_week(feature, window_enable, window, bins):
             if sum(n) != 0:
                 n = [x / sum(n) for x in n]
                 result_list.append(n)
-                columns.append(animal_id + ' - Week ' + str(week_counter))
+                # columns.append(animal_id + ' - Week ' + str(week_counter))
+                columns.append(animal_id + ' - Week ' + str(week_counter) + " ("+start_of_week.strftime('%d.%m.%Y')+" - "+end_of_week.strftime('%d.%m.%Y')+")")
+            start_of_week = end_of_week
 
     data = pd.DataFrame(np.array(result_list).T, columns=columns)
     f = f"preprocessed_data/histograms/{feature.replace('-', '_')}-bins-{bins or 'none'}-rolling-{window or 'none'}-split_into_weeks.pkl"
