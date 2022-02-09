@@ -46,7 +46,7 @@ This file contains utility functions. This file is not required to be executed t
 3. __Preprocessing time series data__: To use time series data for clustering, some preprocessing steps need to be done.
    It is important that every time series is of the same length and does not contain empty values since every single
    timestamp represents an input dimension for the clustering algorithm. Thus, every time series was padded to the same
-   length and missing values where interpolated. Here, it is also possible to calculate the rolling mean. It is strongly
+   length and missing values were interpolated. Here, it is also possible to calculate the rolling mean. It is strongly
    advised to use the PCA option to reduce the dimensionality of the data due to the size of the data which needs to be
    in memory at the same time during clustering (PCA down to 10 dimensions results in a total file size of only 315 KB
    for ALL animals in the dataset). The preprocessed files saved into the 'preprocessed_data' folder. The metadata (
@@ -84,7 +84,7 @@ to use the dashboard. Step 3 needs to be done if time series data is needed whil
   if the step can be completed or if it already was completed. Additionally, the best clustering results can be
   displayed.
 
-- __Histogram/Heatmap__: Here, the numerical features calculated in step 2 of util.py can be visualized. The bin size of
+- __Histogram/Heatmap__: Here, the numerical features calculated in step 2 of the setup can be visualized. The bin size of
   the histogram is adjustable in the dashboard. This can be used to see which features might be useful for clustering.
 
   ![Histogram example](./static/histogram.png)

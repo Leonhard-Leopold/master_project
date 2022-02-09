@@ -370,7 +370,7 @@ def start_dashboard():
             dcc.Tab(label='Setup & Preprocessing', value='layout_setup'),
             dcc.Tab(label='Feature Histogram', value='layout_histogram'),
             dcc.Tab(label='Feature Barchart', value='layout_barchart'),
-            dcc.Tab(label='Timeseries Visualisation', value='layout_timeseries_rolling'),
+            dcc.Tab(label='Time Series Visualisation', value='layout_timeseries_rolling'),
             dcc.Tab(label='Clustering', value='layout_clustering'),
             dcc.Tab(label='Clustering Histograms', value='layout_clustering_histogram')
         ], value='layout_setup'),
@@ -797,7 +797,7 @@ def start_dashboard():
         fig = display_various_dimensions(display_dimensions, axes, symbols, reduced_data, c, names)
         logs.append(html.Div(f'Graph created! Displaying ...'))
         fig.update_layout(
-            title=f'Clustering of histograms - {method_description[method]} -'
+            title=f'Clustering of histograms - {get_file_info(file, label=True)} - {method_description[method]} - '
                   f'Silhouette Score: {cluster_evals["sil"]:0.4f} <br> {cat_res_text}',
             legend_traceorder='normal', title_x=0.5)
         return fig, {'display': 'block'}
