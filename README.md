@@ -124,7 +124,7 @@ to use the dashboard. Step 3 needs to be done if time series data is needed whil
   saved to cluster use while clustering. Lastly, the preprocessed data can be used while clustering. Different methods
   of clustering histograms can be chosen. You can either use K-Means on the bins or calculate the cosine similarity of
   each pair of histograms and cluster the results. Another less resource-intensive method is calculating the average
-  histogram and the cosine similarity to each datapoint. The same can also be done with the Kullback–Leibler divergence.
+  histogram and the cosine similarity to each datapoint. The same can also be done with the Jensen–Shannon divergence.
 
   ![clustering of histograms](static/histogram_clustering.png)
 

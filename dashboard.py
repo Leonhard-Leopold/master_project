@@ -42,7 +42,7 @@ features = pd.DataFrame([
     ['kmeans', 'Clustering just using the bins of the histograms', 'method'],
     ['kmeans_cos', 'Clustering the cosine similarity between all of the histograms', 'method'],
     ['kmeans_avg_cos', 'Clustering the cosine similarity between every histogram and the average histogram', 'method'],
-    ['kmeans_avg_kl', 'Clustering the KL divergence between every histogram and the average histogram', 'method'],
+    ['kmeans_avg_js', 'Clustering the Jensen–Shannon divergence between every histogram and the average histogram', 'method'],
     ['pca1', "Principal Component 1", 'pca'],
     ['pca2', "Principal Component 2", 'pca'],
     ['pca3', "Principal Component 3", 'pca'],
@@ -758,10 +758,10 @@ def start_dashboard():
             'kmeans': 'K-Means',
             'kmeans_cos': 'Cosine similarity of every pair',
             'kmeans_avg_cos': 'Cosine similarity to the average',
-            'kmeans_avg_kl': 'Kullback–Leibler divergence to the average',
+            'kmeans_avg_js': 'Jensen–Shannon divergence to the average',
         }
 
-        if method == 'kmeans_avg_cos' or method == 'kmeans_avg_kl':
+        if method == 'kmeans_avg_cos' or method == 'kmeans_avg_js':
             display_dimensions = 1
             axes = [method]
         else:

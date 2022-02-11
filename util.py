@@ -13,6 +13,7 @@ from os.path import exists
 from sklearn import preprocessing
 from datetime import datetime
 import scipy
+from scipy.spatial import distance
 from scipy import spatial
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -505,12 +506,12 @@ def cluster_histograms(metadata, file, method, clusters, highlight_cat):
         model = KMeans(n_clusters=clusters, random_state=0)
         assigned_labels = model.fit_predict(np.array(cos_sims).reshape(-1, 1))
         cluster_dataset = np.array(cos_sims).reshape(-1, 1)
-    elif method == 'kmeans_avg_kl':
+    elif method == 'kmeans_avg_js':
         average_hist = [np.array(cluster_dataset)[:, i].mean() for i in range(len(cluster_dataset[0]))]
-        kl_div = [sum(i) for i in scipy.special.kl_div(cluster_dataset, average_hist)]
+        js_div = [distance.jensenshannon(i, average_hist) for i in cluster_dataset]
         model = KMeans(n_clusters=clusters, random_state=0)
-        assigned_labels = model.fit_predict(np.array(kl_div).reshape(-1, 1))
-        cluster_dataset = np.array(kl_div).reshape(-1, 1)
+        assigned_labels = model.fit_predict(np.array(js_div).reshape(-1, 1))
+        cluster_dataset = np.array(js_div).reshape(-1, 1)
 
     cluster_evals = calc_evaluations(m, cluster_dataset, assigned_labels, model, highlight_cat)
     kmeans_evaluation[get_signature([method], file, clusters)] = cluster_evals
@@ -549,7 +550,7 @@ def find_best_clusters(skip=True, min_clusters=2, max_clusters=6):
                       'rum_classification-bins-2-rolling-none.pkl',
                       'rum_classification-bins-2-rolling-none-split_into_weeks.pkl',
                       ]
-    histogram_clustering_methods = ['kmeans', 'kmeans_cos', 'kmeans_avg_cos', 'kmeans_avg_kl']
+    histogram_clustering_methods = ['kmeans', 'kmeans_cos', 'kmeans_avg_cos', 'kmeans_avg_js']
 
     all_num_feat_combinations = list(
         list(compress(all_num_feat_to_test, mask)) for mask in product(*[[0, 1]] * len(all_num_feat_to_test)))[1:]
